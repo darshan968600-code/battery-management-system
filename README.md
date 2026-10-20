@@ -107,8 +107,8 @@ You can run the entire system locally in under 2 minutes:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/<your-username>/battery-management-system-bms.git
-cd battery-management-system-bms
+git clone https://github.com/darshan968600-code/battery-management-system.git
+cd battery-management-system
 ```
 
 ### 2. Create and Activate Virtual Environment
