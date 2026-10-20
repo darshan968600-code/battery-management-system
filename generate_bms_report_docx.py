@@ -1,33 +1,29 @@
 """
-Script to generate the comprehensive BMS Project Report Word Document (.docx)
-Conforms to exact user specifications:
-- Page 1: Reg No: 24BYB0133, Name: Suhaan Mohanty
-- Page 2: Project Title
-- Page 3: AWS CERTIFICATE (Placeholder container for pasting)
-- Upcoming Pages:
-  - Description of the project
-  - Steps involved
-  - Architecture (with figures)
-  - Execution (with test results and figures)
+Refined script to generate the professional BMS Project Report Word Document (.docx)
+Fixes image sizing, borders, and layout to eliminate awkward page breaks and blank spaces:
+- Compact image widths (3.4" - 4.0")
+- Framed card-style figure containers pinning image to its caption
+- keep_with_next = True on all headings and figures
+- Intentional page budgeting across 8 beautifully balanced pages
 """
 
 import os
 import docx
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
-from docx.oxml import parse_xml, OxmlElement
-from docx.oxml.ns import nsdecls, qn
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls
 
 def create_report():
     doc = docx.Document()
 
-    # --- Page Margins ---
+    # --- Page Margins (0.85 in for optimal balanced printable area) ---
     for section in doc.sections:
-        section.top_margin = Inches(1.0)
-        section.bottom_margin = Inches(1.0)
-        section.left_margin = Inches(1.0)
-        section.right_margin = Inches(1.0)
+        section.top_margin = Inches(0.85)
+        section.bottom_margin = Inches(0.85)
+        section.left_margin = Inches(0.9)
+        section.right_margin = Inches(0.9)
         section.page_width = Inches(8.5)
         section.page_height = Inches(11.0)
 
@@ -43,56 +39,49 @@ def create_report():
     HEX_BORDER = "CBD5E1"
     HEX_ZEBRA = "F8FAFC"
 
-    # --- Style Configuration Helper Functions ---
-    def set_font(run, font_name="Calibri", size_pt=11, bold=False, italic=False, color=COLOR_DARK):
+    def set_font(run, font_name="Calibri", size_pt=10.5, bold=False, italic=False, color=COLOR_DARK):
         run.font.name = font_name
         run.font.size = Pt(size_pt)
         run.bold = bold
         run.italic = italic
         run.font.color.rgb = color
 
-    def add_para(doc, text="", style='Normal', space_before=0, space_after=6, align=WD_ALIGN_PARAGRAPH.LEFT, line_spacing=1.15):
+    def add_para(doc, text="", style='Normal', space_before=0, space_after=5, align=WD_ALIGN_PARAGRAPH.LEFT, line_spacing=1.12, keep_with_next=False):
         p = doc.add_paragraph(text, style=style)
         p.paragraph_format.space_before = Pt(space_before)
         p.paragraph_format.space_after = Pt(space_after)
         p.paragraph_format.alignment = align
         p.paragraph_format.line_spacing = line_spacing
+        p.paragraph_format.keep_with_next = keep_with_next
         return p
 
-    def add_h1(doc, text):
-        p = add_para(doc, space_before=16, space_after=8, align=WD_ALIGN_PARAGRAPH.LEFT)
+    def add_h1(doc, text, keep_with_next=True):
+        p = add_para(doc, space_before=14, space_after=6, align=WD_ALIGN_PARAGRAPH.LEFT, keep_with_next=keep_with_next)
         run = p.add_run(text)
-        set_font(run, "Calibri", 18, bold=True, color=COLOR_PRIMARY)
-        # Add bottom border XML to Heading 1 for visual polish
-        pBdr = parse_xml(f'<w:pBdr {nsdecls("w")}><w:bottom w:val="single" w:sz="12" w:space="4" w:color="{HEX_PRIMARY}"/></w:pBdr>')
+        set_font(run, "Calibri", 16, bold=True, color=COLOR_PRIMARY)
+        pBdr = parse_xml(f'<w:pBdr {nsdecls("w")}><w:bottom w:val="single" w:sz="10" w:space="3" w:color="{HEX_PRIMARY}"/></w:pBdr>')
         p._p.get_or_add_pPr().append(pBdr)
         return p
 
-    def add_h2(doc, text):
-        p = add_para(doc, space_before=12, space_after=6, align=WD_ALIGN_PARAGRAPH.LEFT)
+    def add_h2(doc, text, keep_with_next=True):
+        p = add_para(doc, space_before=10, space_after=4, align=WD_ALIGN_PARAGRAPH.LEFT, keep_with_next=keep_with_next)
         run = p.add_run(text)
-        set_font(run, "Calibri", 14, bold=True, color=COLOR_SECONDARY)
-        return p
-
-    def add_h3(doc, text):
-        p = add_para(doc, space_before=8, space_after=4, align=WD_ALIGN_PARAGRAPH.LEFT)
-        run = p.add_run(text)
-        set_font(run, "Calibri", 12, bold=True, color=COLOR_DARK)
+        set_font(run, "Calibri", 12.5, bold=True, color=COLOR_SECONDARY)
         return p
 
     def add_bullet(doc, bold_prefix, text):
         p = add_para(doc, style='List Bullet', space_before=1, space_after=3)
         r_pre = p.add_run(bold_prefix)
-        set_font(r_pre, "Calibri", 11, bold=True, color=COLOR_DARK)
+        set_font(r_pre, "Calibri", 10, bold=True, color=COLOR_DARK)
         r_txt = p.add_run(text)
-        set_font(r_txt, "Calibri", 11, bold=False, color=COLOR_DARK)
+        set_font(r_txt, "Calibri", 10, bold=False, color=COLOR_DARK)
         return p
 
     def set_cell_background(cell, hex_color):
         shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{hex_color}"/>')
         cell._tc.get_or_add_tcPr().append(shd)
 
-    def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
+    def set_cell_margins(cell, top=80, bottom=80, left=120, right=120):
         tcPr = cell._tc.get_or_add_tcPr()
         tcMar = parse_xml(f'<w:tcMar {nsdecls("w")}><w:top w:w="{top}" w:type="dxa"/><w:bottom w:w="{bottom}" w:type="dxa"/><w:left w:w="{left}" w:type="dxa"/><w:right w:w="{right}" w:type="dxa"/></w:tcMar>')
         tcPr.append(tcMar)
@@ -104,11 +93,11 @@ def create_report():
         for i, h_text in enumerate(headers):
             hdr_cells[i].text = h_text
             set_cell_background(hdr_cells[i], HEX_PRIMARY)
-            set_cell_margins(hdr_cells[i], 120, 120, 140, 140)
+            set_cell_margins(hdr_cells[i], 100, 100, 120, 120)
             p = hdr_cells[i].paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for r in p.runs:
-                set_font(r, "Calibri", 10, bold=True, color=RGBColor(255, 255, 255))
+                set_font(r, "Calibri", 9.5, bold=True, color=RGBColor(255, 255, 255))
 
         # Data Rows
         for row_idx, row_data in enumerate(data):
@@ -117,18 +106,16 @@ def create_report():
             for col_idx, cell_value in enumerate(row_data):
                 row_cells[col_idx].text = str(cell_value)
                 set_cell_background(row_cells[col_idx], bg_color)
-                set_cell_margins(row_cells[col_idx], 80, 80, 120, 120)
+                set_cell_margins(row_cells[col_idx], 60, 60, 100, 100)
                 p = row_cells[col_idx].paragraphs[0]
                 p.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 for r in p.runs:
-                    set_font(r, "Calibri", 9.5, bold=(col_idx == 0), color=COLOR_DARK)
+                    set_font(r, "Calibri", 9.0, bold=(col_idx == 0), color=COLOR_DARK)
 
-        # Apply Table Widths & Borders
         for row in table.rows:
             for i, w in enumerate(col_widths):
                 row.cells[i].width = Inches(w)
 
-        # Subtle borders
         tblBorders = parse_xml(
             f'<w:tblBorders {nsdecls("w")}>'
             f'<w:top w:val="single" w:sz="6" w:space="0" w:color="{HEX_BORDER}"/>'
@@ -141,10 +128,58 @@ def create_report():
         )
         table._tbl.tblPr.append(tblBorders)
 
+    def add_figure_card(doc, img_path, caption_text, width_inches=3.8):
+        """Creates a framed, centered figure container that never splits from its caption."""
+        if not os.path.exists(img_path):
+            return None
+        
+        table = doc.add_table(rows=2, cols=1)
+        table.alignment = WD_TABLE_ALIGNMENT.CENTER
+        cell_img = table.cell(0, 0)
+        cell_cap = table.cell(1, 0)
+
+        set_cell_background(cell_img, "FAFAFA")
+        set_cell_background(cell_cap, "F1F5F9")
+        set_cell_margins(cell_img, top=60, bottom=30, left=80, right=80)
+        set_cell_margins(cell_cap, top=30, bottom=50, left=80, right=80)
+
+        # Image Paragraph
+        p_img = cell_img.paragraphs[0]
+        p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_img.paragraph_format.space_before = Pt(4)
+        p_img.paragraph_format.space_after = Pt(2)
+        p_img.paragraph_format.keep_with_next = True
+        p_img.add_run().add_picture(img_path, width=Inches(width_inches))
+
+        # Caption Paragraph
+        p_cap = cell_cap.paragraphs[0]
+        p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_cap.paragraph_format.space_before = Pt(2)
+        p_cap.paragraph_format.space_after = Pt(4)
+        r_c = p_cap.add_run(caption_text)
+        set_font(r_c, "Calibri", 8.5, bold=True, italic=True, color=COLOR_MUTED)
+
+        # Card Border
+        tblBorders = parse_xml(
+            f'<w:tblBorders {nsdecls("w")}>'
+            f'<w:top w:val="single" w:sz="6" w:space="0" w:color="{HEX_BORDER}"/>'
+            f'<w:bottom w:val="single" w:sz="8" w:space="0" w:color="{HEX_PRIMARY}"/>'
+            f'<w:left w:val="single" w:sz="6" w:space="0" w:color="{HEX_BORDER}"/>'
+            f'<w:right w:val="single" w:sz="6" w:space="0" w:color="{HEX_BORDER}"/>'
+            f'<w:insideH w:val="single" w:sz="4" w:space="0" w:color="{HEX_BORDER}"/>'
+            f'</w:tblBorders>'
+        )
+        table._tbl.tblPr.append(tblBorders)
+
+        p_spacer = doc.add_paragraph()
+        p_spacer.paragraph_format.space_before = Pt(0)
+        p_spacer.paragraph_format.space_after = Pt(4)
+        return table
+
     # =========================================================================
     # PAGE 1: STUDENT INFORMATION COVER PAGE
     # =========================================================================
-    p_sp = add_para(doc, space_before=80, space_after=0)
+    add_para(doc, space_before=90, space_after=0)
     
     p_badge = add_para(doc, space_before=0, space_after=12, align=WD_ALIGN_PARAGRAPH.CENTER)
     r_badge = p_badge.add_run("ACADEMIC COURSE PROJECT REPORT")
@@ -154,11 +189,10 @@ def create_report():
     r_div = p_div.add_run("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     set_font(r_div, "Calibri", 12, bold=False, color=COLOR_MUTED)
 
-    p_card = add_para(doc, space_before=20, space_after=20, align=WD_ALIGN_PARAGRAPH.CENTER)
+    p_card = add_para(doc, space_before=15, space_after=18, align=WD_ALIGN_PARAGRAPH.CENTER)
     r_sub = p_card.add_run("SUBMITTED BY:")
     set_font(r_sub, "Calibri", 12, bold=True, color=COLOR_MUTED)
 
-    # Student Info Box
     info_table = doc.add_table(rows=2, cols=2)
     info_table.alignment = WD_TABLE_ALIGNMENT.CENTER
     
@@ -170,15 +204,13 @@ def create_report():
     for row_idx, (label, val) in enumerate(info_data):
         c_lbl = info_table.rows[row_idx].cells[0]
         c_val = info_table.rows[row_idx].cells[1]
-        
         c_lbl.text = label
         c_val.text = val
         
         set_cell_background(c_lbl, HEX_LIGHT_BG)
         set_cell_background(c_val, "FFFFFF")
-        set_cell_margins(c_lbl, 120, 120, 160, 160)
-        set_cell_margins(c_val, 120, 120, 160, 160)
-        
+        set_cell_margins(c_lbl, 110, 110, 150, 150)
+        set_cell_margins(c_val, 110, 110, 150, 150)
         c_lbl.width = Inches(2.6)
         c_val.width = Inches(3.4)
         
@@ -190,7 +222,7 @@ def create_report():
         p_v.alignment = WD_ALIGN_PARAGRAPH.LEFT
         set_font(p_v.runs[0], "Calibri", 13, bold=True, color=COLOR_DARK)
 
-    tblBorders = parse_xml(
+    tblBdr = parse_xml(
         f'<w:tblBorders {nsdecls("w")}>'
         f'<w:top w:val="single" w:sz="8" w:space="0" w:color="{HEX_PRIMARY}"/>'
         f'<w:bottom w:val="single" w:sz="8" w:space="0" w:color="{HEX_PRIMARY}"/>'
@@ -200,7 +232,7 @@ def create_report():
         f'<w:insideV w:val="single" w:sz="4" w:space="0" w:color="{HEX_BORDER}"/>'
         f'</w:tblBorders>'
     )
-    info_table._tbl.tblPr.append(tblBorders)
+    info_table._tbl.tblPr.append(tblBdr)
 
     p_meta = add_para(doc, space_before=160, space_after=4, align=WD_ALIGN_PARAGRAPH.CENTER)
     r_meta1 = p_meta.add_run("Degree Program & Department Project Submission\n")
@@ -213,7 +245,7 @@ def create_report():
     # =========================================================================
     # PAGE 2: PROJECT TITLE PAGE
     # =========================================================================
-    add_para(doc, space_before=100, space_after=0)
+    add_para(doc, space_before=110, space_after=0)
     
     p_t_pre = add_para(doc, space_before=0, space_after=12, align=WD_ALIGN_PARAGRAPH.CENTER)
     r_t_pre = p_t_pre.add_run("PROJECT TITLE")
@@ -221,25 +253,23 @@ def create_report():
 
     p_t_main = add_para(doc, space_before=0, space_after=16, align=WD_ALIGN_PARAGRAPH.CENTER)
     r_t_main = p_t_main.add_run("Cyber-Physical Battery Management System (BMS) Digital Twin with Dual-Head Transformer Neural Inference on AWS Cloud")
-    set_font(r_t_main, "Calibri", 22, bold=True, color=COLOR_PRIMARY)
+    set_font(r_t_main, "Calibri", 21, bold=True, color=COLOR_PRIMARY)
 
     p_t_sub = add_para(doc, space_before=0, space_after=24, align=WD_ALIGN_PARAGRAPH.CENTER)
     r_t_sub = p_t_sub.add_run("Real-Time Edge State-of-Charge (SOC) and State-of-Health (SOH) Estimation, Fleet-Scale Telemetry Digital Twin, and Production Cloud Deployment")
-    set_font(r_t_sub, "Calibri", 13, italic=True, color=COLOR_MUTED)
+    set_font(r_t_sub, "Calibri", 12.5, italic=True, color=COLOR_MUTED)
 
     p_t_div = add_para(doc, space_before=0, space_after=24, align=WD_ALIGN_PARAGRAPH.CENTER)
     r_t_div = p_t_div.add_run("──────────────────────────────────────────────────")
     set_font(r_t_div, "Calibri", 12, bold=False, color=COLOR_BORDER)
 
-    # Project Technical Domains
     p_dom = add_para(doc, space_before=10, space_after=4, align=WD_ALIGN_PARAGRAPH.CENTER)
     r_dom_t = p_dom.add_run("Technical Domains & Focus Areas:\n")
     set_font(r_dom_t, "Calibri", 11, bold=True, color=COLOR_PRIMARY)
     r_dom_v = p_dom.add_run("Cloud Computing (AWS EC2 / Nginx / HTTPS)  •  Edge AI / Deep Learning (ONNX Runtime)\nCyber-Physical Systems (BMS Digital Twin)  •  Electric Vehicle (EV) Telemetry Analytics")
-    set_font(r_dom_v, "Calibri", 10.5, color=COLOR_DARK)
+    set_font(r_dom_v, "Calibri", 10, color=COLOR_DARK)
 
-    # Links Box
-    p_links = add_para(doc, space_before=40, space_after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
+    p_links = add_para(doc, space_before=35, space_after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
     r_l1 = p_links.add_run("Public Production URL: ")
     set_font(r_l1, "Calibri", 10.5, bold=True, color=COLOR_PRIMARY)
     r_l2 = p_links.add_run("https://battery-bms.duckdns.org\n")
@@ -261,18 +291,17 @@ def create_report():
     r_csub = p_cert_sub.add_run("Amazon Web Services (AWS) Verified Course Credential / Certification")
     set_font(r_csub, "Calibri", 11, italic=True, color=COLOR_MUTED)
 
-    # Framed Placeholder Box
     cert_table = doc.add_table(rows=1, cols=1)
     cert_table.alignment = WD_TABLE_ALIGNMENT.CENTER
     c_cell = cert_table.cell(0, 0)
-    c_cell.width = Inches(6.5)
+    c_cell.width = Inches(6.7)
     
     set_cell_background(c_cell, HEX_LIGHT_BG)
-    set_cell_margins(c_cell, 800, 800, 400, 400)
+    set_cell_margins(c_cell, 700, 700, 350, 350)
     
     cp = c_cell.paragraphs[0]
     cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cp.paragraph_format.space_before = Pt(80)
+    cp.paragraph_format.space_before = Pt(70)
     cp.paragraph_format.space_after = Pt(20)
     
     r_c_box1 = cp.add_run("╔════════════════════════════════════════════════════════════╗\n")
@@ -290,9 +319,9 @@ def create_report():
                             "2. Click directly inside this box and press Paste (Ctrl + V),\n"
                             "   or select Insert -> Pictures in Word to insert the image file.\n"
                             "3. Adjust the size to fit neatly within this certificate section.")
-    set_font(r_c_instr2, "Calibri", 10.5, italic=True, color=COLOR_MUTED)
+    set_font(r_c_instr2, "Calibri", 10, italic=True, color=COLOR_MUTED)
     
-    cp.paragraph_format.space_after = Pt(80)
+    cp.paragraph_format.space_after = Pt(70)
 
     tblBorders = parse_xml(
         f'<w:tblBorders {nsdecls("w")}>'
@@ -307,12 +336,12 @@ def create_report():
     doc.add_page_break()
 
     # =========================================================================
-    # UPCOMING PAGES: 1. DESCRIPTION OF THE PROJECT
+    # PAGE 4: 1. DESCRIPTION OF THE PROJECT
     # =========================================================================
     add_h1(doc, "1. DESCRIPTION OF THE PROJECT")
 
     add_h2(doc, "1.1 Executive Summary")
-    p_desc = add_para(doc, space_after=8)
+    p_desc = add_para(doc, space_after=6)
     p_desc.add_run(
         "Modern energy storage systems in Electric Vehicles (EVs) and smart electrical grids demand ultra-accurate, "
         "low-latency monitoring to ensure physical safety, optimize battery lifespan, and prevent catastrophic failures "
@@ -324,7 +353,7 @@ def create_report():
     )
 
     add_h2(doc, "1.2 Problem Statement & Industrial Need")
-    p_prob = add_para(doc, space_after=8)
+    p_prob = add_para(doc, space_after=6)
     p_prob.add_run(
         "Lithium-ion batteries exhibit severe electrochemical nonlinearities, hysteresis, and path-dependent aging mechanisms. "
         "Traditional BMS solutions rely heavily on Coulomb Counting (which suffers from cumulative integration drift over time) "
@@ -334,36 +363,36 @@ def create_report():
     )
 
     add_h2(doc, "1.3 Key Project Objectives")
-    add_bullet(doc, "Dual-Head Transformer Inference: ", "Formulate a sequence-to-vector self-attention neural architecture capable of capturing long-range temporal electro-thermal dependencies across 32-timestep sensor windows (Voltage, Current, Temperature).")
-    add_bullet(doc, "Sub-Millisecond Edge Latency: ", "Optimize model execution using ONNX Runtime CPU provider to achieve latencies below 0.70 ms per prediction, rendering it fully viable for automotive microcontrollers and real-time electronic control units (ECUs).")
-    add_bullet(doc, "Pluggable Zero-Downtime Hot Swapping: ", "Implement an enterprise dynamic model-loading architecture that enables remote firmware updates and zero-downtime hot-reloading of neural weights via RESTful endpoints.")
-    add_bullet(doc, "Fleet-Scale Digital Twin Simulation: ", "Construct a high-fidelity digital twin platform continuously tracking 200 battery packs across 5 heterogeneous operating environments, grounded in real-world NASA Ames PCoE battery aging datasets.")
-    add_bullet(doc, "Cloud-Native Production Hardening: ", "Deploy an enterprise microservice stack on AWS EC2 featuring systemd process management, Nginx reverse proxying, Gzip acceleration, and automated SSL/TLS encryption.")
+    add_bullet(doc, "Dual-Head Transformer Inference: ", "Formulate a sequence-to-vector self-attention neural architecture capturing long-range electro-thermal dependencies across 32-step sensor windows (Voltage, Current, Temperature).")
+    add_bullet(doc, "Sub-Millisecond Edge Latency: ", "Optimize execution using ONNX Runtime CPU provider to achieve latencies below 0.70 ms, enabling deployment on automotive microcontrollers without costly GPUs.")
+    add_bullet(doc, "Pluggable Zero-Downtime Hot Swapping: ", "Implement dynamic model loading enabling remote firmware updates and zero-downtime hot-reloading of neural weights via RESTful endpoints.")
+    add_bullet(doc, "Fleet-Scale Digital Twin Simulation: ", "Construct a high-fidelity digital twin platform tracking 200 battery packs across 5 heterogeneous operating environments, grounded in NASA Ames PCoE aging datasets.")
+    add_bullet(doc, "Cloud-Native Production Hardening: ", "Deploy an enterprise microservice stack on AWS EC2 featuring systemd process management, Nginx reverse proxying, Gzip compression, and automated SSL/TLS encryption.")
 
     add_h2(doc, "1.4 System Specifications & Technical Highlights")
     spec_headers = ["Parameter / Metric", "Engineering Specification", "Operational Relevance"]
     spec_data = [
-        ["Model Architecture", "2-Layer Transformer Encoder", "Captures temporal attention across sequential sensor readings"],
-        ["Parameters", "~25,600 trainable parameters", "Ultra-compact footprint (~216 KB) for edge/embedded deployment"],
-        ["Input Dimension", "[batch, 32, 3] (Float32)", "32 sequential timesteps of Voltage (V), Current (A), Temperature (°C)"],
-        ["Dual Prediction Heads", "Head 1: SOC (Sigmoid) | Head 2: SOH (Linear)", "Simultaneous energy reserve (%) and capacity degradation tracking"],
-        ["Inference Latency", "0.62 ms - 0.68 ms per window (CPU)", "Enables high-frequency (>100 Hz) real-time closed-loop control"],
+        ["Model Architecture", "2-Layer Transformer Encoder", "Captures temporal attention across sequential readings"],
+        ["Parameters", "~25,600 trainable parameters", "Ultra-compact footprint (~216 KB) for edge microcontrollers"],
+        ["Input Dimension", "[batch, 32, 3] (Float32)", "32 sequential timesteps of Voltage (V), Current (A), Temp (°C)"],
+        ["Dual Prediction Heads", "Head 1: SOC (Sigmoid) | Head 2: SOH (Linear)", "Simultaneous energy reserve (%) and capacity retention tracking"],
+        ["Inference Latency", "0.62 ms - 0.68 ms per window (CPU)", "Enables high-frequency (>100 Hz) closed-loop safety control"],
         ["Backend Framework", "FastAPI (Asynchronous Python 3.11)", "Non-blocking high-throughput telemetry ingestion pipeline"],
         ["Cloud Hosting", "AWS EC2 Ubuntu (Free Tier t2.micro)", "$0.00/month continuous cloud operation with HTTPS domain"],
-        ["Fleet Scale", "200 Battery Packs across 5 Fleets", "Simulates Urban EVs, Long-Haul Logistics, Tropical & Arctic Grids"]
+        ["Fleet Scale", "200 Battery Packs across 5 Fleets", "Simulates Urban EVs, Long-Haul, Tropical & Arctic Grids"]
     ]
     spec_table = doc.add_table(rows=len(spec_data) + 1, cols=3)
-    style_table(spec_table, [1.8, 2.3, 2.4], spec_headers, spec_data)
+    style_table(spec_table, [1.8, 2.3, 2.6], spec_headers, spec_data)
 
     doc.add_page_break()
 
     # =========================================================================
-    # 2. STEPS INVOLVED IN DEVELOPMENT
+    # PAGE 5: 2. STEPS INVOLVED IN DEVELOPMENT
     # =========================================================================
     add_h1(doc, "2. STEPS INVOLVED IN DEVELOPMENT")
 
     add_h2(doc, "Step 1: Deep Learning Model Engineering & ONNX Graph Optimization")
-    p_s1 = add_para(doc, space_after=6)
+    p_s1 = add_para(doc, space_after=5)
     p_s1.add_run(
         "The project commenced with designing a multi-layer Transformer Encoder tailored for temporal sequence analysis. "
         "Unlike recurrent networks (RNNs/LSTMs) which suffer from gradient vanishing and sequential execution bottlenecks, "
@@ -374,7 +403,7 @@ def create_report():
     )
 
     add_h2(doc, "Step 2: Battery Telemetry Synthesis & NASA Ames PCoE Integration")
-    p_s2 = add_para(doc, space_after=6)
+    p_s2 = add_para(doc, space_after=5)
     p_s2.add_run(
         "To ensure robust empirical validity, the system integrates authentic aging and cycling telemetry from the NASA Ames "
         "Prognostics Center of Excellence (PCoE) Lithium-ion battery dataset (specifically cells B0005, B0006, B0007, and B0018). "
@@ -385,7 +414,7 @@ def create_report():
     )
 
     add_h2(doc, "Step 3: FastAPI Backend & Asynchronous Serving Pipeline")
-    p_s3 = add_para(doc, space_after=6)
+    p_s3 = add_para(doc, space_after=5)
     p_s3.add_run(
         "A cloud-native REST API was developed in `app.py` utilizing the FastAPI asynchronous framework. Pydantic schemas enforce "
         "strict data validation on inbound telemetry payloads. The inference engine incorporates automatic cold-start padding: "
@@ -395,7 +424,7 @@ def create_report():
     )
 
     add_h2(doc, "Step 4: Pluggable Architecture & Zero-Downtime Hot Reloading")
-    p_s4 = add_para(doc, space_after=6)
+    p_s4 = add_para(doc, space_after=5)
     p_s4.add_run(
         "In critical infrastructure and automotive fleets, taking a server offline to deploy a retrained model is unacceptable. "
         "To solve this, a 'Pluggable Hot-Reload Engine' was designed. Model metadata, scaling coefficients (min, max, mean, std), "
@@ -405,7 +434,7 @@ def create_report():
     )
 
     add_h2(doc, "Step 5: Responsive Web Dashboard & Diagnostic Digital Twin")
-    p_s5 = add_para(doc, space_after=6)
+    p_s5 = add_para(doc, space_after=5)
     p_s5.add_run(
         "A responsive single-page web dashboard was developed in `index.html` using Tailwind CSS and Chart.js. The interface "
         "features three primary operational panes: (1) Fleet Telemetry Monitor displaying live health indicators, active packs, "
@@ -416,7 +445,7 @@ def create_report():
     )
 
     add_h2(doc, "Step 6: AWS Cloud Deployment & Production Hardening")
-    p_s6 = add_para(doc, space_after=6)
+    p_s6 = add_para(doc, space_after=5)
     p_s6.add_run(
         "The complete solution was deployed to an AWS EC2 Ubuntu instance (AWS Free Tier t2.micro). Process resilience was established "
         "via a custom Linux systemd daemon (`bms-api.service`) featuring automated crash recovery. An Nginx reverse proxy (`bms_nginx.conf`) "
@@ -427,12 +456,12 @@ def create_report():
     doc.add_page_break()
 
     # =========================================================================
-    # 3. SYSTEM ARCHITECTURE
+    # PAGE 6: 3. SYSTEM ARCHITECTURE
     # =========================================================================
     add_h1(doc, "3. SYSTEM ARCHITECTURE")
 
     add_h2(doc, "3.1 End-to-End Cyber-Physical Architecture")
-    p_arch_desc = add_para(doc, space_after=6)
+    p_arch_desc = add_para(doc, space_after=5)
     p_arch_desc.add_run(
         "The architecture establishes a closed-loop cyber-physical bridge between physical battery assets and cloud digital twin analytics. "
         "Physical or simulated battery sensor arrays continuously collect terminal voltage, load current, and cell temperature. "
@@ -440,36 +469,30 @@ def create_report():
         "Predictions are published both to local controllers for immediate battery protection and to cloud fleet analytics for long-term health tracking."
     )
 
-    # Insert Fig 3: Cloud Infrastructure
-    if os.path.exists("paper/figures/fig3_cloud_infrastructure.png"):
-        p_img = add_para(doc, space_before=6, space_after=2, align=WD_ALIGN_PARAGRAPH.CENTER)
-        p_img.add_run().add_picture("paper/figures/fig3_cloud_infrastructure.png", width=Inches(5.8))
-        p_cap = add_para(doc, space_before=2, space_after=10, align=WD_ALIGN_PARAGRAPH.CENTER)
-        r_c = p_cap.add_run("Fig. 1: End-to-End AWS Cloud & Cyber-Physical BMS Digital Twin Architecture")
-        set_font(r_c, "Calibri", 9.5, bold=True, italic=True, color=COLOR_MUTED)
+    # Insert Fig 1: Cloud Infrastructure (Compact 4.0 in)
+    add_figure_card(doc, "paper/figures/fig3_cloud_infrastructure.png", 
+                    "Fig. 1: End-to-End AWS Cloud & Cyber-Physical BMS Digital Twin Architecture", width_inches=4.0)
 
     add_h2(doc, "3.2 Dual-Head Transformer Neural Network Architecture")
-    p_nn_desc = add_para(doc, space_after=6)
+    p_nn_desc = add_para(doc, space_after=5)
     p_nn_desc.add_run(
-        "The neural architecture processes temporal sequence vectors through a multi-stage deep learning pipeline:\n"
-        "1. Input Embedding: An input tensor of shape [batch, 32, 3] is mapped to a high-dimensional latent space through learned linear projections.\n"
-        "2. Positional Encoding: Temporal ordering is preserved via positional embeddings added to each feature vector.\n"
-        "3. Transformer Encoders: Two stacked encoder layers utilize multi-head self-attention with scaled dot-product attention: "
-        "Attention(Q, K, V) = softmax(Q K^T / sqrt(d_k)) V. Feed-forward sublayers with GELU activation and layer normalization refine representation.\n"
-        "4. Dual Prediction Heads: The pooled sequence output splits into two distinct heads: Head 1 terminates in a Sigmoid activation to bound "
-        "State of Charge (SOC) within [0.0, 1.0], while Head 2 employs linear regression to output the State of Health (SOH) retention factor."
+        "The neural architecture processes temporal sequence vectors through a multi-stage deep learning pipeline: "
+        "(1) Input Embedding maps [batch, 32, 3] tensors to latent dimension; (2) Positional Encoding preserves sequential ordering; "
+        "(3) Stacked Transformer Encoders employ scaled dot-product multi-head attention with layer normalization and GELU activations; and "
+        "(4) Dual Output Heads disentangle tasks into a Sigmoid-activated State of Charge (SOC %) and a linear State of Health (SOH) regression metric."
     )
 
-    # Insert Fig 1: Transformer Architecture
-    if os.path.exists("paper/figures/fig1_transformer_architecture.png"):
-        p_img2 = add_para(doc, space_before=6, space_after=2, align=WD_ALIGN_PARAGRAPH.CENTER)
-        p_img2.add_run().add_picture("paper/figures/fig1_transformer_architecture.png", width=Inches(5.8))
-        p_cap2 = add_para(doc, space_before=2, space_after=10, align=WD_ALIGN_PARAGRAPH.CENTER)
-        r_c2 = p_cap2.add_run("Fig. 2: Dual-Head Transformer Encoder Architecture with Self-Attention and Disentangled Outputs")
-        set_font(r_c2, "Calibri", 9.5, bold=True, italic=True, color=COLOR_MUTED)
+    # Insert Fig 2: Transformer Architecture (Compact 4.0 in)
+    add_figure_card(doc, "paper/figures/fig1_transformer_architecture.png", 
+                    "Fig. 2: Dual-Head Transformer Encoder Architecture with Self-Attention and Disentangled Outputs", width_inches=4.0)
 
+    doc.add_page_break()
+
+    # =========================================================================
+    # PAGE 7: 3.3 FLEET MODEL & 4.1 LOCAL SETUP / INTEGRATION TESTS
+    # =========================================================================
     add_h2(doc, "3.3 Multi-Fleet Digital Twin Model")
-    p_fl_desc = add_para(doc, space_after=6)
+    p_fl_desc = add_para(doc, space_after=5)
     p_fl_desc.add_run(
         "To test scalability and multi-environmental robustness, the digital twin coordinates 200 battery packs across 5 diverse fleets: "
         "Fleet 1 (Urban Delivery EVs - dynamic stop-and-go load cycles); Fleet 2 (Long-Haul Freight Haulage - continuous sustained C-rates); "
@@ -477,23 +500,14 @@ def create_report():
         "impedance stress); and Fleet 5 (Extreme Mining Machinery - high-shock vibration and severe regenerative discharge peaks)."
     )
 
-    # Insert Fig 4: Fleet Distribution
-    if os.path.exists("paper/figures/fig4_fleet_distribution.png"):
-        p_img3 = add_para(doc, space_before=6, space_after=2, align=WD_ALIGN_PARAGRAPH.CENTER)
-        p_img3.add_run().add_picture("paper/figures/fig4_fleet_distribution.png", width=Inches(5.5))
-        p_cap3 = add_para(doc, space_before=2, space_after=10, align=WD_ALIGN_PARAGRAPH.CENTER)
-        r_c3 = p_cap3.add_run("Fig. 3: Multi-Fleet Operational Profiles & Health Distributions across 200 Battery Packs")
-        set_font(r_c3, "Calibri", 9.5, bold=True, italic=True, color=COLOR_MUTED)
+    # Insert Fig 3: Fleet Distribution (Compact 3.8 in)
+    add_figure_card(doc, "paper/figures/fig4_fleet_distribution.png", 
+                    "Fig. 3: Multi-Fleet Operational Profiles & Health Distributions across 200 Battery Packs", width_inches=3.8)
 
-    doc.add_page_break()
-
-    # =========================================================================
-    # 4. PROJECT EXECUTION & VERIFICATION
-    # =========================================================================
     add_h1(doc, "4. PROJECT EXECUTION & VERIFICATION")
 
     add_h2(doc, "4.1 Local Setup & Standalone Verification")
-    p_ex1 = add_para(doc, space_after=6)
+    p_ex1 = add_para(doc, space_after=5)
     p_ex1.add_run(
         "Execution began with verifying the ONNX Runtime execution environment locally. The standalone script `verify_model.py` "
         "loads `transformer(1).onnx`, inspects tensor metadata, and feeds simulated electro-thermal test vectors corresponding to "
@@ -502,10 +516,10 @@ def create_report():
     )
 
     add_h2(doc, "4.2 Comprehensive Integration Test Suite")
-    p_ex2 = add_para(doc, space_after=6)
+    p_ex2 = add_para(doc, space_after=5)
     p_ex2.add_run(
-        "An automated test suite was constructed using `fastapi.testclient.TestClient` to rigorously validate all endpoints, "
-        "payload serialization, and error handling. Ten critical test suites were executed, achieving a 100% pass rate:"
+        "An automated test suite was constructed using `fastapi.testclient.TestClient` to validate all endpoints, payload serialization, "
+        "and error handling. Ten critical test suites were executed, achieving a 100% pass rate:"
     )
 
     test_headers = ["Test Suite / Endpoint", "Target Route", "Expected Behavior", "Status"]
@@ -522,10 +536,15 @@ def create_report():
         ["10. Custom Dataset Ingestion", "POST /custom-dataset/upload", "Simulates S3 ETL validation and dynamic batch parsing", "PASSED (200 OK)"]
     ]
     test_table = doc.add_table(rows=len(test_data) + 1, cols=4)
-    style_table(test_table, [1.6, 1.8, 2.3, 0.8], test_headers, test_data)
+    style_table(test_table, [1.6, 1.8, 2.4, 0.9], test_headers, test_data)
 
+    doc.add_page_break()
+
+    # =========================================================================
+    # PAGE 8: 4.3 NASA VALIDATION, 4.4 COMPARISONS & 4.5 CLOUD DEPLOYMENT
+    # =========================================================================
     add_h2(doc, "4.3 Empirical Validation on NASA Ames PCoE Aging Datasets")
-    p_ex3 = add_para(doc, space_before=8, space_after=6)
+    p_ex3 = add_para(doc, space_after=5)
     p_ex3.add_run(
         "The model was validated against physical Lithium-ion degradation datasets obtained from the NASA Ames Prognostics "
         "Center of Excellence (PCoE). Physical cells (B0005, B0006, B0007, and B0018) were cycled through repeatable 2.0A constant "
@@ -533,28 +552,20 @@ def create_report():
         "the neural digital twin accurately tracks capacity fade and internal resistance growth across 168 accelerated cycles."
     )
 
-    # Insert Fig 2: NASA Degradation
-    if os.path.exists("paper/figures/fig2_nasa_degradation.png"):
-        p_img4 = add_para(doc, space_before=6, space_after=2, align=WD_ALIGN_PARAGRAPH.CENTER)
-        p_img4.add_run().add_picture("paper/figures/fig2_nasa_degradation.png", width=Inches(5.6))
-        p_cap4 = add_para(doc, space_before=2, space_after=10, align=WD_ALIGN_PARAGRAPH.CENTER)
-        r_c4 = p_cap4.add_run("Fig. 4: NASA Ames PCoE Capacity Degradation Trajectories and Neural Health Projections")
-        set_font(r_c4, "Calibri", 9.5, bold=True, italic=True, color=COLOR_MUTED)
+    # Insert Fig 4: NASA Degradation (Compact 3.5 in)
+    add_figure_card(doc, "paper/figures/fig2_nasa_degradation.png", 
+                    "Fig. 4: NASA Ames PCoE Capacity Degradation Trajectories and Neural Health Projections", width_inches=3.5)
 
     add_h2(doc, "4.4 Model Comparison: Transformer vs. State-Space Models (SSM)")
-    p_ex4 = add_para(doc, space_after=6)
+    p_ex4 = add_para(doc, space_after=5)
     p_ex4.add_run(
         "To rigorously evaluate the architectural choice, empirical benchmarks were compiled comparing the 2-Layer Transformer "
         "against State-Space Models (SSM / Mamba) and traditional recurrent baselines across accuracy, latency, and compute cost."
     )
 
-    # Insert Slide 8 Graph
-    if os.path.exists("paper/slide8_graph.jpg"):
-        p_img5 = add_para(doc, space_before=6, space_after=2, align=WD_ALIGN_PARAGRAPH.CENTER)
-        p_img5.add_run().add_picture("paper/slide8_graph.jpg", width=Inches(5.0))
-        p_cap5 = add_para(doc, space_before=2, space_after=10, align=WD_ALIGN_PARAGRAPH.CENTER)
-        r_c5 = p_cap5.add_run("Fig. 5: Empirical Benchmark Comparison: Transformer vs. State-Space Model (SSM / Mamba)")
-        set_font(r_c5, "Calibri", 9.5, bold=True, italic=True, color=COLOR_MUTED)
+    # Insert Fig 5: Slide 8 Graph (Compact 3.4 in)
+    add_figure_card(doc, "paper/slide8_graph.jpg", 
+                    "Fig. 5: Empirical Benchmark Comparison: Transformer vs. State-Space Model (SSM / Mamba)", width_inches=3.4)
 
     bench_headers = ["Metric / Dimension", "Transformer (Ours)", "State-Space Model (SSM / Mamba)", "Advantage / Trade-off"]
     bench_data = [
@@ -565,10 +576,10 @@ def create_report():
         ["Hardware Acceleration", "Native ONNX CPU/GPU", "Specialized CUDA Kernels", "Transformer ONNX runs anywhere without proprietary drivers"]
     ]
     bench_table = doc.add_table(rows=len(bench_data) + 1, cols=4)
-    style_table(bench_table, [1.6, 1.4, 1.8, 1.7], bench_headers, bench_data)
+    style_table(bench_table, [1.6, 1.4, 1.8, 1.9], bench_headers, bench_data)
 
     add_h2(doc, "4.5 Production Cloud Deployment & Live Verification")
-    p_ex5 = add_para(doc, space_before=8, space_after=6)
+    p_ex5 = add_para(doc, space_before=6, space_after=5)
     p_ex5.add_run(
         "The finalized system was deployed to a production Ubuntu instance hosted on AWS Elastic Compute Cloud (EC2). "
         "Continuous service reliability was achieved with systemd process supervision (`bms-api.service`), automatically restarting "
@@ -577,18 +588,24 @@ def create_report():
         "sub-second global response times at zero monthly infrastructure cost on the AWS Free Tier."
     )
 
-    p_conc = add_para(doc, space_before=12, space_after=12)
+    p_conc = add_para(doc, space_before=8, space_after=8)
     p_conc.add_run(
         "Conclusion: This project successfully bridges the gap between deep learning research and practical cyber-physical systems. "
         "By packaging an attention-based Transformer model into an optimized ONNX container and marrying it to an asynchronous cloud "
         "backend and digital twin interface, the system demonstrates an industry-ready blueprint for next-generation EV battery intelligence."
     )
 
-    # Save document
     output_path = "BMS_Project_Report_Suhaan_Mohanty.docx"
-    doc.save(output_path)
-    print(f"Document successfully created at: {output_path}")
-    return output_path
+    saved_path = output_path
+    try:
+        doc.save(output_path)
+        print(f"Successfully updated primary file: {output_path}")
+    except PermissionError:
+        saved_path = "BMS_Project_Report_Suhaan_Mohanty_Formatted.docx"
+        doc.save(saved_path)
+        print(f"Primary file was open in Word. Successfully saved formatted version to: {saved_path}")
+
+    return saved_path
 
 if __name__ == "__main__":
     create_report()
