@@ -1,0 +1,75 @@
+# ==============================================================================
+# Security & Secret Credentials (CRITICAL - NEVER COMMIT)
+# ==============================================================================
+*.pem
+*.key
+*.cer
+*.crt
+*.pfx
+.env
+.env.*
+secrets/
+credentials.json
+
+# ==============================================================================
+# Python & Virtual Environments
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# ==============================================================================
+# Intermediate & Cache Files
+# ==============================================================================
+extracted_images/
+ieee_preview/
+pdf_preview/
+pdf_slides_exported/
+paper/archive/
+
+# LaTeX build artifacts (keep paper.tex and final paper PDF)
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# ==============================================================================
+# Operating System & IDE Files
+# ==============================================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo

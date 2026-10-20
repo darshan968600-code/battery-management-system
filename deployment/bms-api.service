@@ -1,0 +1,15 @@
+[Unit]
+Description=Battery Management System (BMS) FastAPI Server
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/bms_api
+ExecStart=/home/ubuntu/bms_api/venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
